@@ -112,24 +112,14 @@ Función eliminada. Goquery no retorna error para selectores inválidos.
 
 ## 🟡 Medios (Maintainability)
 
-### M1: Default cache sin límite de tamaño
+### M1: Default cache sin límite de tamaño ✅
 
-**Archivos:** `scraper.go:23` — `var defaultCache = cache.NewInMemoryCache()`
+**Estado:** RESUELTO en v10.1
 
-**Problema:** El `InMemoryCache` comparte una variable global sin límite de tamaño. Solo tiene TTL para expiración. En procesos de larga duración (servidores, workers), esto puede crecer ilimitadamente si se acceden muchas URLs distintas.
-
-**Fix recomendado:** Agregar opción de `MaxSize` con política LRU:
-
-```go
-type InMemoryCache struct {
-    mu       sync.Mutex
-    items    map[string]*cacheEntry
-    maxSize  int           // 0 = ilimitado
-    evictOrder []string    // para LRU
-}
-```
-
-O al mínimo documentar esta limitación en la API pública.
+- `NewInMemoryCache()` ahora tiene límite de 10000 entradas
+- `NewInMemoryCacheWithLimit(maxEntries)` permite configurar límite custom
+- Política LRU para evict cuando se alcanza el límite
+- Tests para LRU eviction incluidos
 
 ---
 
@@ -217,17 +207,19 @@ Usando regex `regexp.MustCompile(`\n{3,}`)` para normalizar whitespace en O(n).
 
 ---
 
-### L2: Cero logging en todo el pipeline
+### L2: Cero logging en todo el pipeline ✅
 
-**Problema:** La pipeline completa de extracción no emite ningún log. Errores se wrappan pero no se loggean.
+**Estado:** RESUELTO en v10.1
 
-**Fix Phase 2:** Integrar zerolog (ya está como indirect dependency):
+Usando `log/slog` (built-in en Go 1.21+):
 
 ```go
-// Pipeline stages con logging
-logger.Info().Str("url", url).Msg("fetching")
-logger.Info().Str("extractor", name).Int64("ms", duration).Msg("extracted")
-logger.Warn().Str("url", url).Strs("signals", signals).Msg("paywall detected")
+// Logs en pipeline
+slog.Debug("fetch_start", "url", url, "strategy", "simple")
+slog.Info("cache_hit", "url", url, "duration_ms", ms)
+slog.Warn("paywall_detected", "url", url, "signals", signals)
+slog.Info("extraction_complete", "url", url, "extractor", name, "word_count", wc)
+slog.Error("fetch_failed", "url", url, "error", err)
 ```
 
 ---

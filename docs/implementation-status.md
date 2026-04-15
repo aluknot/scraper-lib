@@ -91,13 +91,13 @@
 
 | # | Issue | Prioridad |
 |---|-------|-----------|
-| M1 | Default cache sin límite de tamaño | Media |
+| M1 | Default cache sin límite de tamaño | ✅ RESUELTO |
+| L2 | Cero logging en pipeline | ✅ RESUELTO |
 | M2 | Código muerto: teaser.go | Baja |
 | M3 | Código muerto: ErrCircuitOpen | Baja |
 | M4 | Código muerto: PriceInfo, JobInfo | Baja |
 | M8 | `testdata/` vacío | Baja |
 | L1 | `MemoryCache.Get()` usa Lock vs RLock | Baja |
-| L2 | Cero logging en pipeline | Media |
 | L3 | Retry config hardcoded | Baja |
 | L4 | `github.com` en teaser domains | Baja |
 | L5 | `GenerateFilename()` truncación 80 chars | Baja |

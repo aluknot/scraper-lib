@@ -140,3 +140,69 @@ func TestInMemoryCache_ConcurrentAccess(t *testing.T) {
 		t.Errorf("expected 100 entries after concurrent writes, got %d", stats.Size)
 	}
 }
+
+func TestInMemoryCache_LRUEviction(t *testing.T) {
+	c := NewInMemoryCacheWithLimit(3)
+
+	c.Set("https://a.com", &Result{URL: "https://a.com"}, 1*time.Hour)
+	c.Set("https://b.com", &Result{URL: "https://b.com"}, 1*time.Hour)
+	c.Set("https://c.com", &Result{URL: "https://c.com"}, 1*time.Hour)
+
+	stats := c.Stats()
+	if stats.Size != 3 {
+		t.Fatalf("expected 3 entries, got %d", stats.Size)
+	}
+
+	c.Set("https://d.com", &Result{URL: "https://d.com"}, 1*time.Hour)
+
+	stats = c.Stats()
+	if stats.Size != 3 {
+		t.Errorf("expected size 3 after eviction, got %d", stats.Size)
+	}
+
+	_, ok := c.Get("https://a.com")
+	if ok {
+		t.Error("expected 'a.com' to be evicted (LRU)")
+	}
+
+	_, ok = c.Get("https://d.com")
+	if !ok {
+		t.Error("expected 'd.com' to be present")
+	}
+}
+
+func TestInMemoryCache_LRUAccessUpdatesOrder(t *testing.T) {
+	c := NewInMemoryCacheWithLimit(3)
+
+	c.Set("https://a.com", &Result{URL: "https://a.com"}, 1*time.Hour)
+	c.Set("https://b.com", &Result{URL: "https://b.com"}, 1*time.Hour)
+	c.Set("https://c.com", &Result{URL: "https://c.com"}, 1*time.Hour)
+
+	c.Get("https://a.com")
+
+	c.Set("https://d.com", &Result{URL: "https://d.com"}, 1*time.Hour)
+
+	_, ok := c.Get("https://b.com")
+	if ok {
+		t.Error("expected 'b.com' to be evicted (accessed 'a.com' updated LRU order)")
+	}
+}
+
+func TestInMemoryCache_LRUReaccessPreventsEviction(t *testing.T) {
+	c := NewInMemoryCacheWithLimit(3)
+
+	c.Set("https://a.com", &Result{URL: "https://a.com"}, 1*time.Hour)
+	c.Set("https://b.com", &Result{URL: "https://b.com"}, 1*time.Hour)
+	c.Set("https://c.com", &Result{URL: "https://c.com"}, 1*time.Hour)
+
+	c.Get("https://a.com")
+	c.Get("https://a.com")
+	c.Get("https://a.com")
+
+	c.Set("https://d.com", &Result{URL: "https://d.com"}, 1*time.Hour)
+
+	_, ok := c.Get("https://a.com")
+	if !ok {
+		t.Error("expected 'a.com' to NOT be evicted (most recently accessed)")
+	}
+}

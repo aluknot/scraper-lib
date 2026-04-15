@@ -5,6 +5,7 @@ package scraperlib
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -124,6 +125,9 @@ func Extract(ctx context.Context, url string, opts *Options) (*Result, error) {
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
+	start := time.Now()
+	slog.Debug("extract_start", "url", url)
+
 	// Resolve cache (respects DisableCache)
 	var cacheInstance cache.Cache
 	var cacheTTL time.Duration
@@ -136,28 +140,32 @@ func Extract(ctx context.Context, url string, opts *Options) (*Result, error) {
 		}
 		// Check cache hit
 		if result, ok := cacheInstance.Get(url); ok {
+			slog.Info("cache_hit", "url", url, "duration_ms", time.Since(start).Milliseconds())
 			return resultFromCache(result), nil
 		}
+		slog.Debug("cache_miss", "url", url)
 	}
 
 	// Resolve HTTP client — simple or advanced
 	client := resolveHTTPClient(opts, timeout)
 	chain := buildChain(opts)
 
-	start := time.Now()
-
 	// Step 1: Fetch raw HTML
 	var rawHTML string
 	var err error
 	if opts.UseAdvanced {
+		slog.Debug("fetch_start", "url", url, "strategy", "advanced")
 		advOpts := resolveAdvancedOptions(opts)
 		rawHTML, err = fetch.GetHTMLAdvanced(ctx, client, url, advOpts)
 	} else {
+		slog.Debug("fetch_start", "url", url, "strategy", "simple")
 		rawHTML, err = fetch.GetHTML(ctx, client, url)
 	}
 	if err != nil {
+		slog.Error("fetch_failed", "url", url, "error", err)
 		return nil, fmt.Errorf("fetch HTML: %w", err)
 	}
+	slog.Debug("fetch_success", "url", url, "html_size", len(rawHTML), "duration_ms", time.Since(start).Milliseconds())
 
 	// Step 2: Detect paywall (optional)
 	warnings := make([]string, 0)
@@ -166,6 +174,7 @@ func Extract(ctx context.Context, url string, opts *Options) (*Result, error) {
 			for _, s := range signals {
 				warnings = append(warnings, fmt.Sprintf("paywall_detected:%s", s))
 			}
+			slog.Warn("paywall_detected", "url", url, "signals", signals)
 		}
 	}
 
@@ -175,11 +184,15 @@ func Extract(ctx context.Context, url string, opts *Options) (*Result, error) {
 	if !opts.NoEmbeds {
 		embedExtractor := embeds.NewEmbedExtractor()
 		processedHTML, embedMap = embedExtractor.ExtractAndReplace(rawHTML)
+		if len(embedMap) > 0 {
+			slog.Debug("embeds_extracted", "url", url, "count", len(embedMap))
+		}
 	}
 
 	// Step 4: Run extractor chain (readability / trafilatura / colly)
 	extracted, err := chain.Extract(ctx, processedHTML, url)
 	if err != nil {
+		slog.Error("extraction_failed", "url", url, "error", err)
 		return nil, fmt.Errorf("extract: %w", err)
 	}
 
@@ -204,6 +217,13 @@ func Extract(ctx context.Context, url string, opts *Options) (*Result, error) {
 	if !opts.DisableCache {
 		cacheInstance.Set(url, toCacheResult(result), cacheTTL)
 	}
+
+	slog.Info("extraction_complete",
+		"url", url,
+		"extractor", result.ExtractorUsed,
+		"word_count", result.WordCount,
+		"duration_ms", time.Since(start).Milliseconds(),
+		"warnings", len(warnings))
 
 	return result, nil
 }
