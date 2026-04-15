@@ -123,33 +123,38 @@ Función eliminada. Goquery no retorna error para selectores inválidos.
 
 ---
 
-### M2: Código muerto — teaser.go
+### M2: Funciones teaser.go preparadas para Phase 2
 
 **Archivos:** `internal/detection/teaser.go`
 
 **Funciones sin caller:** `IsLikelyTeaser()`, `IsKnownTeaserDomain()`, `NeedsScraping()`
 
-**Decision:** Si se va a usar en Phase 2/3, mantener con comentario `// Used in Phase X`. Si no hay plan concreto de uso, eliminar para reducir ruido.
+**Decision:** Mantener — preparado para Phase 2. Funciones útiles para:
+- `IsLikelyTeaser()` — detectar contenido truncado
+- `IsKnownTeaserDomain()` — dominios soft-paywall
+- `NeedsScraping()` — decidir si hacer scraping completo
 
 ---
 
-### M3: Código muerto — ErrCircuitOpen
+### M3: ErrCircuitOpen preparado para Phase 3
 
 **Archivos:** `errors.go`
 
-**Problema:** Definido pero nunca retornado por ningún path activo (circuit breaker es Phase 3).
+**Problema:** Definido pero nunca retornado (circuit breaker es Phase 3).
 
-**Decision:** Mismo criterio que M2. Comentar con fase planificada o eliminar.
+**Decision:** Mantener — preparado para Phase 3 cuando se implemente circuit breaker por dominio.
 
 ---
 
-### M4: Código muerto — PriceInfo, JobInfo
+### M4: PriceInfo, JobInfo preparados para Phase 2
 
 **Archivos:** `internal/types/types.go`
 
 **Problema:** Tipos definidos pero ningún extractor los pobla (Phase 2+).
 
-**Decision:** Mantener con comentario de fase planificada.
+**Decision:** Mantener — preparado para cuando se necesiten extractores especializados:
+- `PriceInfo` → e-commerce (Amazon, MercadoLibre)
+- `JobInfo` → job postings (LinkedIn, Indeed)
 
 ---
 

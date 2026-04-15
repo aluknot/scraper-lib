@@ -93,9 +93,9 @@
 |---|-------|-----------|
 | M1 | Default cache sin límite de tamaño | ✅ RESUELTO |
 | L2 | Cero logging en pipeline | ✅ RESUELTO |
-| M2 | Código muerto: teaser.go | Baja |
-| M3 | Código muerto: ErrCircuitOpen | Baja |
-| M4 | Código muerto: PriceInfo, JobInfo | Baja |
+| M2 | teaser.go preparado para Phase 2 | Baja |
+| M3 | ErrCircuitOpen preparado para Phase 3 | Baja |
+| M4 | PriceInfo/JobInfo preparados para Phase 2 | Baja |
 | M8 | `testdata/` vacío | Baja |
 | L1 | `MemoryCache.Get()` usa Lock vs RLock | Baja |
 | L3 | Retry config hardcoded | Baja |
