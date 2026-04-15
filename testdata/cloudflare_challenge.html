@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Just a moment...</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+</head>
+<body>
+    <div id="cf-challenge-running" style="display: none;">
+        Verifying you are human...
+    </div>
+    
+    <div id="challenge-container">
+        <div class="cf-error-details-wrapper">
+            <div class="cf-wrapper cf-error-code">
+                <h1>
+                    <span data-translate="challenge_headline">One more step</span>
+                </h1>
+            </div>
+            
+            <div class="cf-alert cf-alert-error" id="challenge-error-text" style="display:none">
+                <p data-translate="js_disabled">Please enable JavaScript on your browser to verify you're a real person.</p>
+            </div>
+            
+            <div class="cf-section-highlight">
+                <div class="spinner" id="challenge-spinner">
+                    <div class="ch-circle"></div>
+                </div>
+                <p class="challenge-body-text" id="challenge-body-text">
+                    Please wait while we verify that you're a real person...
+                </p>
+            </div>
+            
+            <div class="cf-trusted-fallback" id="trusted-fallback" style="display:none">
+                <p>If you are the website owner and you think this is an error, please contact Cloudflare support.</p>
+            </div>
+            
+            <div class="attribution">
+                <a href="https://www.cloudflare.com/5xx-error-landing/" target="_blank" rel="noopener noreferrer">
+                    Cloudflare
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div id="challenge-form" style="display:none">
+        <form method="POST" action="/cdn-cgi/challenge-platform/h/b/scripts/invisiblee?ray=1234567890abcdef" id="challenge-form-data">
+            <input type="hidden" name="ray" value="1234567890abcdef">
+        </form>
+    </div>
+    
+    <script>
+        // Cloudflare challenge detection would go here
+        // This page indicates bot protection is active
+    </script>
+</body>
+</html>

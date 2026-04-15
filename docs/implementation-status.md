@@ -96,7 +96,7 @@
 | M2 | teaser.go preparado para Phase 2 | Baja |
 | M3 | ErrCircuitOpen preparado para Phase 3 | Baja |
 | M4 | PriceInfo/JobInfo preparados para Phase 2 | Baja |
-| M8 | `testdata/` vacío | Baja |
+| M8 | `testdata/` vacío | ✅ RESUELTO |
 | L1 | `MemoryCache.Get()` usa Lock vs RLock | Baja |
 | L3 | Retry config hardcoded | Baja |
 | L4 | `github.com` en teaser domains | Baja |

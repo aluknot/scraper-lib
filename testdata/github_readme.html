@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en" data-color-mode="dark" data-dark-theme="dark">
+<head>
+    <meta charset="utf-8">
+    <title>go-scraper - Modern Web Scraping Library</title>
+    <link rel="icon" type="image/svg+xml" class="f4" href="/favicon.svg">
+</head>
+<body class="logged-out env-production page-responsive">
+    <div id="js-pjax-container" data-turbo-frame="repo-content-turbo-frame">
+        <div id="repo-content-pjax-container" class="repository-content ">
+            <div itemprop="mainEntityOfPage" itemscope itemtype="http://schema.org/SoftwareSourceCode">
+                <div id="readme" class="Box Box--condensed readme slug-target-container">
+                    <div class="Box-body px-5 pb-5">
+                        <article class="markdown-body entry-content container-lg" itemprop="text">
+                            <h1 align="center">go-scraper</h1>
+                            
+                            <p>
+                                <a href="https://github.com/aluknot/go-scraper/actions"><img src="https://github.com/aluknot/go-scraper/workflows/CI/badge.svg" alt="CI"></a>
+                                <a href="https://goreportcard.com/report/github.com/aluknot/go-scraper"><img src="https://goreportcard.com/badge/github.com/aluknot/go-scraper" alt="Go Report Card"></a>
+                                <a href="https://pkg.go.dev/github.com/aluknot/go-scraper"><img src="https://pkg.go.dev/badge/github.com/aluknot/go-scraper" alt="PkgGoDev"></a>
+                            </p>
+                            
+                            <p>A modern, high-performance web scraping library for Go with support for multiple extraction strategies.</p>
+                            
+                            <h2>Features</h2>
+                            
+                            <ul>
+                                <li>Multiple extraction strategies (Readability, Trafilatura, Colly)</li>
+                                <li>Built-in caching with TTL support</li>
+                                <li>Embed preservation for YouTube, Twitter, etc.</li>
+                                <li>HTML sanitization for security</li>
+                                <li>Paywall detection</li>
+                                <li>Domain-specific extraction rules via YAML</li>
+                            </ul>
+                            
+                            <h2>Quick Start</h2>
+                            
+                            <pre><code>go get github.com/aluknot/go-scraper</code></pre>
+                            
+                            <pre><code>package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    
+    "github.com/aluknot/go-scraper"
+)
+
+func main() {
+    result, err := scraper.Extract(context.Background(), "https://example.com/article", nil)
+    if err != nil {
+        log.Fatal(err)
+    }
+    fmt.Printf("Title: %s\n", result.Article.Title)
+    fmt.Printf("Content: %s...\n", result.Article.Content[:100])
+}</code></pre>
+                            
+                            <h2>License</h2>
+                            
+                            <p>MIT License - see <a href="LICENSE">LICENSE</a> file for details.</p>
+                        </article>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

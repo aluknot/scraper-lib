@@ -182,13 +182,18 @@ Usando regex `regexp.MustCompile(`\n{3,}`)` para normalizar whitespace en O(n).
 
 ---
 
-### M8: `testdata/` vacío
+### M8: `testdata/` vacío ✅
 
-**Archivos:** `/testdata/` (directorio vacío)
+**Estado:** RESUELTO en v10.1
 
-**Problema:** `docs/testing.md` lista 7 fixtures HTML requeridos pero ninguno existe.
-
-**Fix:** Crear los archivos HTML mínimos (pendiente).
+Fixtures creados:
+- `testdata/article_with_embeds.html` - Artículo con YouTube y Twitter embeds
+- `testdata/github_readme.html` - README de GitHub con estructura típica
+- `testdata/wikipedia_article.html` - Artículo Wikipedia con referencias
+- `testdata/paywall_detected.html` - Página con señales de paywall
+- `testdata/cloudflare_challenge.html` - Cloudflare challenge page
+- `testdata/empty_spa.html` - SPA vacía (JS-rendered)
+- `testdata/price_product.html` - Página de producto e-commerce
 
 ---
 
