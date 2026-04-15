@@ -1,0 +1,22 @@
+# config/extractors.yaml
+# Domain-specific extraction rules.
+# path_regex uses Go regexp syntax (regexp.MatchString).
+# Anchor with ^ and $ for exact match, or use partial for substring match.
+
+rules:
+  - domain: "github.com"
+    path_regex: "/.*"
+    type: "readme"
+    selector: "article.markdown-body"
+    alt: "article#readme"
+    transform: "markdown"
+
+  - domain: "github.com"
+    path_regex: "/[^/]+/[^/]+/releases/.*"
+    type: "releases"
+    selector: "div.markdown-body"
+
+  - domain: "wikipedia.org"
+    path_regex: "/.*"
+    type: "article"
+    selector: "#mw-content-text"
