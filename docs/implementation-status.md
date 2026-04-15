@@ -1,7 +1,7 @@
 # Estado de Implementación
 
 > **Fecha:** 2026-04-15
-> **Versión:** v10.0 (API composable + quality fixes)
+> **Versión:** v10.1 (API composable + structured logging + LRU cache)
 
 ---
 
@@ -46,7 +46,6 @@
 | qualityScore completo | Phase 2 | Scoring ponderado (word count, links, images, metadata, extractor) |
 | price extractor | Phase 2 | Patrones e-commerce (Amazon, MercadoLibre) |
 | job extractor | Phase 2 | Patrones job postings (LinkedIn, Indeed) |
-| logs estructurados | Phase 2 | zerolog o similar |
 | circuit breaker | Phase 3 | Por dominio, configurable vía YAML |
 | bot detection estructural | Phase 3 | Cloudflare, PerimeterX, SPA vacía |
 | proxy rotation | Phase 3 | Sobre http_advanced |

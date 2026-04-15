@@ -39,7 +39,7 @@
 
 ## Estado rápido
 
-- **Versión actual:** v10.0 (API composable + quality fixes)
+- **Versión actual:** v10.1 (API composable + logs + LRU cache)
 - **Tests:** 70+ pasando
 - **Archivos de código:** ~35
 - **API:** Nivel 1 (Extract) + Nivel 2 (componentes públicos)
