@@ -110,25 +110,21 @@ If there is ANY action:
 
 go build ./...
 
-### Test
+### Test (includes integration tests)
 
-go test ./...
-go test -v ./...
-go test -cover ./...
+go test -tags=integration ./...
+go test -tags=integration -v ./...
+go test -tags=integration -cover ./...
 
 ### Targeted Tests
 
-go test -v -run "TestName" ./package
-go test -v -run "^TestPrefix" ./...
-go test -v ./specific/file_test.go ./specific/file.go
-
-### Integration Tests
-
-go test -v -tags=integration ./...
+go test -tags=integration -v -run "TestName" ./package
+go test -tags=integration -v -run "^TestPrefix" ./...
+go test -tags=integration -v ./specific/file_test.go ./specific/file.go
 
 ### Coverage Report
 
-go test -coverprofile=coverage.out ./... && go tool cover -html=coverage.out
+go test -tags=integration -coverprofile=coverage.out ./... && go tool cover -html=coverage.out
 
 ---
 

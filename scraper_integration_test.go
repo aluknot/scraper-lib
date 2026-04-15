@@ -149,8 +149,9 @@ func TestExtract_Integration_MultipleOutputs(t *testing.T) {
 
 	url := "https://en.wikipedia.org/wiki/Go_(programming_language)"
 	result, err := Extract(context.Background(), url, &Options{
-		Timeout: 30 * time.Second,
-		Outputs: []string{"article", "metadata"},
+		Timeout:      30 * time.Second,
+		Outputs:      []string{"article", "metadata"},
+		DisableCache: true,
 	})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -186,9 +187,10 @@ func TestExtract_Integration_DifferentExtractors(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result, err := Extract(context.Background(), tt.url, &Options{
-				Timeout:    30 * time.Second,
-				Extractor:  tt.extractor,
-				NoFallback: true,
+				Timeout:      30 * time.Second,
+				Extractor:    tt.extractor,
+				NoFallback:   true,
+				DisableCache: true,
 			})
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
