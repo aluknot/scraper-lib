@@ -7,7 +7,7 @@
 | Documento | Descripción |
 |-----------|-------------|
 | [diagrams.md](diagrams.md) | **Diagramas visuales** (Mermaid): arquitectura, pipeline, embeds, chain, packages, errores |
-| [overview.md](overview.md) | Descripción general, diagrama de arquitectura, estructura de repositorios, fases de implementación |
+| [overview.md](overview.md) | Descripción general, **API en dos niveles**, estructura de repositorios, fases de implementación |
 | [error-flow.md](error-flow.md) | Diagrama de flujo de errores (9 pasos), tipos de error estructurados |
 | [architecture.md](architecture.md) | Extractor Chain (DI Hybrid), interfaz Extractor, API pública, estructura del paquete, **cache**, **custom chain**, **output markdown** |
 | [embeds.md](embeds.md) | Sistema de embeds como pre/post processor (YouTube, Twitter, Vimeo, Spotify, etc.) |
@@ -32,14 +32,15 @@
 | [implementation-status.md](implementation-status.md) | Estado actual de implementación: qué está hecho, qué falta, **issues de calidad de código** |
 | [code-quality.md](code-quality.md) | **Revisión completa de código**: hallazgos por severidad (críticos, altos, medios, bajos), orden de resolución recomendado |
 | [dependencies.md](dependencies.md) | Lista de dependencias Go para scraper-lib y scraper-service |
-| [changelog.md](changelog.md) | Historial de versiones (v8 → v9.5) |
+| [dependencies-strategy.md](dependencies-strategy.md) | **Plan futuro** para reducir/evaluar dependencias basado en datos de producción |
+| [changelog.md](changelog.md) | Historial de versiones (v8 → v10.0) |
 
 ---
 
 ## Estado rápido
 
-- **Versión actual:** v9.5 (http_advanced, integration tests, error types)
-- **Tests:** 59 pasando
-- **Archivos de código:** 30
-- **Fase actual:** MVP librería completada, scraper-service pendiente
-- **Features:** Cache (InMemory + File), custom extractor chain, output Markdown con templates YAML, HTTP Advanced (UA rotation, cookies, referrer), error types
+- **Versión actual:** v10.0 (API composable + quality fixes)
+- **Tests:** 70+ pasando
+- **Archivos de código:** ~35
+- **API:** Nivel 1 (Extract) + Nivel 2 (componentes públicos)
+- **Features:** Cache, pipeline stages opcionales (NoEmbeds, NoSanitize, etc.), extractors/exportables, output extensible

@@ -229,6 +229,41 @@ For detailed information, consult the docs folder:
 
 ---
 
+## Git Workflow (REQUIRED)
+
+At the end of each session, the agent MUST commit all changes:
+
+### Commit Rules
+- **When:** Before ending session or when explicitly requested
+- **Format:** Conventional commits (feat:, fix:, docs:, refactor:, test:)
+- **Scope:** Use relevant scope (e.g., `feat/api`, `fix/cache`, `docs/diagrams`)
+
+### Commit Message Format
+```
+<type>(<scope>): <description>
+
+[optional body]
+
+[optional footer]
+```
+
+### Examples
+```bash
+git add .
+git commit -m "feat(api): add NoEmbeds and NoSanitize pipeline flags"
+git commit -m "fix(cache): disablecache flag now properly bypasses cache"
+git commit -m "docs: update diagrams for v10.0 composable API"
+```
+
+### Verification Before Commit
+1. `go build ./...` - must pass
+2. `go test ./...` - must pass
+3. `go vet ./...` - must pass
+
+If any step fails, fix before committing.
+
+---
+
 ## Key Principle
 
 The agent is NOT a free-form coder.
