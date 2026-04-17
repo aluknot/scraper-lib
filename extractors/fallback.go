@@ -24,9 +24,6 @@ import (
 // FallbackExtractor uses simple CSS selectors as a last-resort extraction method.
 // It does not extract metadata — only content text.
 // It parses the already-fetched HTML in memory (no additional HTTP requests).
-//
-// Note: Previously named CollyExtractor for backwards compatibility.
-// Use NewCollyExtractor() to create an instance (still returns FallbackExtractor).
 type FallbackExtractor struct{}
 
 // NewFallbackExtractor creates a new FallbackExtractor.
@@ -34,13 +31,7 @@ func NewFallbackExtractor() *FallbackExtractor {
 	return &FallbackExtractor{}
 }
 
-// NewCollyExtractor creates a new FallbackExtractor.
-// Deprecated: Use NewFallbackExtractor() instead. Kept for backwards compatibility.
-func NewCollyExtractor() *FallbackExtractor {
-	return &FallbackExtractor{}
-}
-
-func (e *FallbackExtractor) Name() string  { return "colly" }
+func (e *FallbackExtractor) Name() string  { return "fallback" }
 func (e *FallbackExtractor) Priority() int { return 3 }
 
 func (e *FallbackExtractor) Extract(ctx context.Context, htmlContent, articleURL string) (*types.ExtractResult, error) {
@@ -98,7 +89,7 @@ func (e *FallbackExtractor) Extract(ctx context.Context, htmlContent, articleURL
 
 	return &types.ExtractResult{
 		Content:       content,
-		ExtractorUsed: "colly",
+		ExtractorUsed: "fallback",
 		WordCount:     countWords(content),
 	}, nil
 }

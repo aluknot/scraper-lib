@@ -49,7 +49,7 @@ type Options struct {
 	Extractors []extractors.Extractor
 
 	// Extractor forces a single extractor by name.
-	// Valid names: "domain_specific", "readability", "trafilatura", "colly".
+	// Valid names: "domain_specific", "readability", "trafilatura", "fallback".
 	// When set, Extractors and DefaultChain are ignored.
 	Extractor string
 
@@ -355,8 +355,8 @@ func extractorByName(name string) extractors.Extractor {
 		return extractors.NewReadabilityExtractor()
 	case "trafilatura":
 		return extractors.NewTrafilaturaExtractor()
-	case "colly":
-		return extractors.NewCollyExtractor()
+	case "fallback":
+		return extractors.NewFallbackExtractor()
 	default:
 		return nil
 	}

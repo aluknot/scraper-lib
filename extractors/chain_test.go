@@ -11,7 +11,7 @@ import (
 func TestChain_Order(t *testing.T) {
 	chain := DefaultChain()
 
-	expected := []string{"domain_specific", "readability", "trafilatura", "colly"}
+	expected := []string{"domain_specific", "readability", "trafilatura", "fallback"}
 	for i, e := range chain.extractors {
 		if e.Name() != expected[i] {
 			t.Errorf("position %d: expected %s, got %s", i, expected[i], e.Name())

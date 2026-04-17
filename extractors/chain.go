@@ -74,12 +74,12 @@ func (c *Chain) Extract(ctx context.Context, htmlContent, url string) (*types.Ex
 //	0 — domain-specific (knows when it doesn't apply)
 //	1 — readability (fastest general-purpose)
 //	2 — trafilatura (better accuracy, slower)
-//	3 — colly (last resort, simple selectors)
+//	3 — fallback (last resort, simple selectors)
 func DefaultChain() *Chain {
 	return NewChain(
 		NewDomainSpecificExtractor(), // priority 0
 		NewReadabilityExtractor(),    // priority 1
 		NewTrafilaturaExtractor(),    // priority 2
-		NewCollyExtractor(),          // priority 3
+		NewFallbackExtractor(),       // priority 3
 	)
 }
