@@ -1,6 +1,6 @@
 # Descripción General
 
-> **Status: v10.0** — API composable con componentes públicos exportados.
+> **Status: v10.2** — Platform extractors (YouTube, GitHub).
 > Ver [docs/implementation-status.md](implementation-status.md) para estado completo.
 
 Servicio standalone de scraping con arquitectura extensible. Base de código extraída de Rissy.
@@ -44,10 +44,48 @@ article := output.BuildArticleResult(result, url)
 | Paquete | Uso |
 |---------|-----|
 | `extractors/` | Chain, extractores, interfaz Extractor |
+| `extractors/platforms/` | Platform extractors (YouTube, GitHub) |
 | `output/` | BuildArticleResult, BuildMarkdownResult |
 | `types/` | ExtractResult, Attempt, StrategyAttempt |
 | `embeds/` | EmbedExtractor para preserve/restore |
 | `sanitize/` | Sanitizer con bluemonday |
+
+---
+
+## Platform Extractors
+
+Extrae metadata y contenido específico de plataformas:
+
+```go
+// Auto-detecta plataforma
+extractor, err := platforms.Get(httpClient, url)
+
+// O directo
+extractor := youtube.New(client)
+
+// Metadata (channel, views, stats)
+meta, err := extractor.Metadata(ctx, url)
+
+// Contenido (título, descripción)
+content, err := extractor.Content(ctx, url)
+
+// Perfil (info de canal/perfil)
+profile, err := extractor.Profile(ctx, url)
+```
+
+### YouTube
+
+- **URLs soportadas**: youtube.com, youtu.be
+- **Tipos**: video, shorts, channel, playlist
+- **Metadata**: VideoMetadata, ChannelMetadata
+- **Content**: VideoContent, ShortContent
+
+### GitHub
+
+- **URLs soportadas**: github.com
+- **Tipos**: repo, profile, release
+- **Metadata**: RepoMetadata, ProfileMetadata
+- **Content**: ReadmeContent
 
 ---
 

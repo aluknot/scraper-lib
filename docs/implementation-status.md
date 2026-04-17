@@ -1,11 +1,11 @@
 # Estado de Implementación
 
-> **Fecha:** 2026-04-15
-> **Versión:** v10.1 (API composable + structured logging + LRU cache)
+> **Fecha:** 2026-04-17
+> **Versión:** v10.2 (Platform extractors: YouTube, GitHub)
 
 ---
 
-## ✅ Implementado (v10.0)
+## ✅ Implementado (v10.0 - v10.2)
 
 | Componente | Archivos | Tests |
 |---|---|---|
@@ -15,7 +15,7 @@
 | Extractor Chain | `extractors/chain.go` | ✅ 4 tests |
 | Readability | `extractors/readability.go` | ✅ |
 | Trafilatura | `extractors/trafilatura.go` | ✅ |
-| Colly (goquery-based) | `extractors/colly.go` | ✅ |
+| Fallback Extractor (goquery-based) | `extractors/fallback.go` | ✅ |
 | Domain rules YAML | `extractors/domain_specific.go` | ✅ 3 tests |
 | Paywall detection | `internal/detection/paywall.go` | ✅ |
 | Output pipeline | `output/article.go` | ✅ |
@@ -27,7 +27,10 @@
 | Error types | `errors.go` | ✅ 5 tests |
 | **Componentes públicos exportados** | `extractors/`, `output/`, `types/`, `embeds/`, `sanitize/` | Nueva API v10 |
 | **Pipeline stages opcionales** | `NoEmbeds`, `NoSanitize`, `NoPaywallDetection`, `DisableCache` | ✅ Tests |
-| **Total** | **~35 archivos** | **70+ tests pasando** |
+| **Platform extractors** | `extractors/platforms/` | ✅ |
+| **YouTube extractor** | `extractors/platforms/youtube/` | ✅ |
+| **GitHub extractor** | `extractors/platforms/github/` | ✅ |
+| **Total** | **~40 archivos** | **70+ tests pasando** |
 
 ---
 
