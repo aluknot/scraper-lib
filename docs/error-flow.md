@@ -53,7 +53,7 @@ Extract(url)
     │     ├── domain_specific → match → extracted
     │     ├── readability → success + wordCount >= 100 → extracted
     │     ├── trafilatura → success + wordCount >= 100 → extracted
-    │     ├── colly → fallback → extracted
+    │     ├── fallback → extracted
     │     │
     │     └── ALL extractors failed (error o low_quality)
     │           │
@@ -89,7 +89,7 @@ Extract(url)
           }
 ```
 
-**Pasos implementados:** [0] cache check (InMemory + File), [1] fetch con retry + http_advanced, [2] paywall detection, [3] embed extraction, [5] extractor chain (domain_specific → readability → trafilatura → colly), [6] sanitization, [7] embed restoration, [8] error types, [9] result building + cache store + markdown rendering.
+**Pasos implementados:** [0] cache check (InMemory + File), [1] fetch con retry + http_advanced, [2] paywall detection, [3] embed extraction, [5] extractor chain (domain_specific → readability → trafilatura → fallback), [6] sanitization, [7] embed restoration, [8] error types, [9] result building + cache store + markdown rendering.
 
 **Pendientes:** [4] estrategia completa de escalación (proxy, browser, archive), [8] qualityScore completo.
 

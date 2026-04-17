@@ -39,7 +39,7 @@ Calcula un score de 0.0 a 1.0 basado en múltiples factores:
 | Densidad de enlaces | 0.15 | < 0.05 = buena, 0.05-0.15 = aceptable, > 0.15 = demasiados |
 | Presencia de imágenes | 0.1 | 1 o más = score completo |
 | Metadata completa | 0.15 | title (0.4), author (0.3), publishedAt (0.3) |
-| Extractor usado | 0.3 | domain_specific=1.0, readability=0.8, trafilatura=0.6, colly=0.3 |
+| Extractor usado | 0.3 | domain_specific=1.0, readability=0.8, trafilatura=0.6, fallback=0.3 |
 
 ```go
 func qualityScore(result *types.ExtractResult) float64 {
@@ -80,7 +80,7 @@ func qualityScore(result *types.ExtractResult) float64 {
     // Factor 5: Extractor usado (peso: 0.3)
     extractorScores := map[string]float64{
         "domain_specific": 1.0, "readability": 0.8,
-        "trafilatura": 0.6, "colly": 0.3,
+        "trafilatura": 0.6, "fallback": 0.3,
     }
     if extScore, ok := extractorScores[result.ExtractorUsed]; ok {
         score += extScore * 0.3

@@ -11,7 +11,7 @@
 | `fetchWithRetry` | `fetch/http.go` | API independiente, sin depender de config/DB |
 | `scrapeWithReadability` | `extractors/readability.go` | Interfaz Extractor, retorna ExtractResult |
 | `scrapeWithTrafilatura` | `extractors/trafilatura.go` | Idem |
-| `scrapeWithColly` | `extractors/colly.go` | Idem |
+| `scrapeWithFallback` | `extractors/fallback.go` | Idem |
 | YouTube placeholders | `fetch/embeds.go` | → Genérico: YouTube + Vimeo + Twitter + Spotify + Instagram + TikTok con UUIDs |
 | `sanitizeHTML` | `fetch/sanitize.go` | Permite iframes para embeds restaurados |
 | `isLikelyTeaser` | `detection/teaser.go` | + `NeedsScraping` combinada |

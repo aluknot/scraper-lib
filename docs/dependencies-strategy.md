@@ -92,7 +92,7 @@ Razones:
 
 ```go
 // En chain.go, agregar:
-result.ExtractorUsed  // "readability", "trafilatura", "colly"
+result.ExtractorUsed  // "readability", "trafilatura", "fallback"
 result.QualityScore   // para comparar
 
 // En logs (futuro):

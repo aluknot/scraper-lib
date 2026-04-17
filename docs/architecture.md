@@ -60,7 +60,7 @@ func DefaultChain() *Chain {
         NewDomainSpecificExtractor(), // priority 0 — sabe cuándo no aplica
         NewReadabilityExtractor(),    // priority 1
         NewTrafilaturaExtractor(),    // priority 2
-        NewCollyExtractor(),          // priority 3 — último recurso
+        NewFallbackExtractor(),          // priority 3 — último recurso
     )
 }
 ```
@@ -99,7 +99,7 @@ scraper-lib/
 │   │   ├── domain_specific.go      # Extractor por dominio (carga desde YAML)
 │   │   ├── readability.go          # go-readability v2
 │   │   ├── trafilatura.go          # go-trafilatura
-│   │   └── colly.go                # colly último recurso
+│   │   └── fallback.go                # fallback último recurso
 │   │
 │   ├── fetch/
 │   │   ├── http.go                 # fetchWithRetry, exponential backoff
@@ -144,7 +144,7 @@ type Options struct {
 
 ### Control del Extractor Chain
 
-**Por defecto**, `Extract()` usa `DefaultChain()` (domain_specific → readability → trafilatura → colly).
+**Por defecto**, `Extract()` usa `DefaultChain()` (domain_specific → readability → trafilatura → fallback).
 
 **Opción A: Forzar un solo extractor por nombre**
 
@@ -154,7 +154,7 @@ result, err := scraperlib.Extract(ctx, url, &scraperlib.Options{
 })
 ```
 
-Nombres válidos: `"domain_specific"`, `"readability"`, `"trafilatura"`, `"colly"`.
+Nombres válidos: `"domain_specific"`, `"readability"`, `"trafilatura"`, `"fallback"`.
 
 **Opción B: Chain personalizado**
 
@@ -163,7 +163,7 @@ result, err := scraperlib.Extract(ctx, url, &scraperlib.Options{
     Extractors: []extractors.Extractor{
         extractors.NewDomainSpecificExtractor(),
         extractors.NewReadabilityExtractor(),
-        // Sin trafilatura ni colly
+        // Sin trafilatura ni fallback
     },
 })
 ```

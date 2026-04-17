@@ -88,7 +88,7 @@ flowchart TD
     S3A --> S4
     S3 -->|true| S4["4. chain.Extract"]
 
-    S4["4. chain.Extract\ndomain_specific → readability → trafilatura → colly"]
+    S4["4. chain.Extract\ndomain_specific → readability → trafilatura → fallback"]
 
     S4 -->|fail| Err5["ErrAllExtractorsFailed ❌"]
     S4 -->|ok| S6{"NoSanitize?"}
@@ -122,7 +122,7 @@ flowchart TD
 ```mermaid
 flowchart TD
     HTML["rawHTML"] --> E["extractAndReplaceEmbeds\nPRE: iframe → [[EMBED_uuid_N]]"]
-    E --> CH["chain.Extract\nreadability / trafilatura / colly\n(placeholders sobreviven = texto)"]
+    E --> CH["chain.Extract\nreadability / trafilatura / fallback\n(placeholders sobreviven = texto)"]
     CH --> SA["sanitizeHTML\n⚠ bluemonday ANTES de restore"]
     SA --> RE["restoreEmbeds\nPOST: [[EMBED_uuid_N]] → iframe original"]
     RE --> OUT["Result con embeds preservados"]
@@ -152,7 +152,7 @@ flowchart TD
     RD -->|low quality| TF["2. trafilatura\n(go-trafilatura)"]
 
     TF -->|wordCount >= 100| Done
-    TF -->|low quality| CL["3. colly\n(goquery CSS selectors)"]
+    TF -->|low quality| CL["3. fallback\n(goquery CSS selectors)"]
 
     CL -->|content extracted| Done
     CL -->|no content| Fail["❌ ErrAllExtractorsFailed"]
@@ -172,7 +172,7 @@ flowchart TD
     scraper["scraper.go\n(API pública: Extract, ExtractHTML)"]
 
     %% Paquetes públicos (exportados)
-    scraper --> extractors["extractors/\nchain.go, interface.go\ndomain_specific.go, readability.go\ntrafilatura.go, colly.go"]
+    scraper --> extractors["extractors/\nchain.go, interface.go\ndomain_specific.go, readability.go\ntrafilatura.go, fallback.go"]
     scraper --> output["output/\narticle.go"]
     scraper --> types["types/\ntypes.go"]
     scraper --> embeds["embeds/\nembeds.go"]

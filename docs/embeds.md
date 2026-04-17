@@ -21,7 +21,7 @@ fetchHTML(url)
 extractAndReplaceEmbeds(html)       ← PRE: reemplaza embeds con placeholders
       │
       ▼
-chain.Extract(processedHTML, url)   ← readability / trafilatura / colly
+chain.Extract(processedHTML, url)   ← readability / trafilatura / fallback
       │  Los placeholders sobreviven porque son texto plano.
       │
       ▼
