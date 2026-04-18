@@ -1,6 +1,6 @@
 # Descripción General
 
-> **Status: v10.2** — Platform extractors (YouTube, GitHub).
+> **Status: v10.3** — Debug logging detallado para troubleshooting.
 > Ver [docs/implementation-status.md](implementation-status.md) para estado completo.
 
 Servicio standalone de scraping con arquitectura extensible. Base de código extraída de Rissy.

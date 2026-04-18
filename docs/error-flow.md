@@ -95,6 +95,47 @@ Extract(url)
 
 ---
 
+## Debugging
+
+### Debug Logs
+
+Habilitar logging detallado con nivel DEBUG:
+
+```go
+// Minimal logging (default)
+result, err := scraperlib.Extract(ctx, url, nil)
+
+// Verbose logging for troubleshooting
+result, err := scraperlib.Extract(ctx, url, &scraperlib.Options{
+    Debug: true,
+})
+```
+
+### Log Keys
+
+| Log | Descripción | Campos |
+|-----|--------------|--------|
+| `fetch_start` | Inicio del fetch | url, strategy |
+| `fetch_success` | Fetch completado | url, html_size, duration_ms |
+| `fetch_failed` | Fetch falló | url, error |
+| `fetch_empty_html` | HTML vacío recibido | url |
+| `fetch_html_preview` | Primeros 200 chars del HTML | url, html_preview |
+| `extractor_error` | Extractor retornó error | url, extractor, error, duration_ms |
+| `extractor_low_quality` | word_count < 100 | url, extractor, word_count, content_length |
+| `extractor_success` | Extracción exitosa | url, extractor, word_count, content_length |
+| `all_extractors_failed` | Todos los extractores fallaron | url, attempts, attempt_summary |
+
+### Troubleshooting común
+
+**"all extractors failed"** significa que ningún extractor pudo extraer ≥100 words. Causas posibles:
+
+1. **HTML vacío o muy corto** — verificar con `fetch_empty_html` log
+2. **Servidor bloquea requests** — intentar con `UseAdvanced: true`
+3. **Protección (Cloudflare, CAPTCHA)** — verificar manualmente el HTML
+4. **SPA/JavaScript rendering** — requires Playwright (Phase 3)
+
+---
+
 ## Tipos de Error
 
 ### Implementados

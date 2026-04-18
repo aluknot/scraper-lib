@@ -1,11 +1,11 @@
 # Estado de Implementación
 
-> **Fecha:** 2026-04-17
-> **Versión:** v10.2 (Platform extractors: YouTube, GitHub)
+> **Fecha:** 2026-04-18
+> **Versión:** v10.3 (Debug logging detallado)
 
 ---
 
-## ✅ Implementado (v10.0 - v10.2)
+## ✅ Implementado (v10.0 - v10.3)
 
 | Componente | Archivos | Tests |
 |---|---|---|
@@ -30,6 +30,7 @@
 | **Platform extractors** | `extractors/platforms/` | ✅ |
 | **YouTube extractor** | `extractors/platforms/youtube/` | ✅ |
 | **GitHub extractor** | `extractors/platforms/github/` | ✅ |
+| **Debug logging** | `Options.Debug`, chain.go logs | ✅ |
 | **Total** | **~40 archivos** | **70+ tests pasando** |
 
 ---
