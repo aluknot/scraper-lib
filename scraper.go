@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/aluknot/scraper-lib/embeds"
@@ -24,7 +26,13 @@ import (
 const DefaultCacheTTL = 24 * time.Hour
 
 // defaultCache is the shared in-memory cache used when no custom cache is provided.
-var defaultCache = cache.NewInMemoryCache()
+var defaultCache cache.Cache = cache.NewInMemoryCache()
+
+var (
+	defaultFileCache         cache.Cache
+	defaultFileCacheDir      string
+	enableFileCacheByDefault = false
+)
 
 // Options configures the extraction behavior.
 type Options struct {
@@ -33,6 +41,10 @@ type Options struct {
 	ExtractImages bool
 	Outputs       []string // Preferred: allows multiple outputs ["article", "metadata", "price"]
 	Output        string   // DEPRECATED: use Outputs. Kept for backwards compat.
+
+	// Debug enables verbose logging for troubleshooting extraction issues.
+	// When true, logs include HTML previews and detailed extractor attempts.
+	Debug bool
 
 	// HTTP strategy — when UseAdvanced is true, uses UA rotation, cookie jar,
 	// and referrer spoofing. Defaults to simple http.Client.
@@ -165,7 +177,23 @@ func Extract(ctx context.Context, url string, opts *Options) (*Result, error) {
 		slog.Error("fetch_failed", "url", url, "error", err)
 		return nil, fmt.Errorf("fetch HTML: %w", err)
 	}
-	slog.Debug("fetch_success", "url", url, "html_size", len(rawHTML), "duration_ms", time.Since(start).Milliseconds())
+	slog.Debug("fetch_success",
+		"url", url,
+		"html_size", len(rawHTML),
+		"duration_ms", time.Since(start).Milliseconds())
+
+	// Debug: log first 200 chars of HTML for troubleshooting
+	if len(rawHTML) > 0 {
+		preview := rawHTML
+		if len(rawHTML) > 200 {
+			preview = rawHTML[:200]
+		}
+		slog.Debug("fetch_html_preview",
+			"url", url,
+			"html_preview", preview)
+	} else {
+		slog.Warn("fetch_empty_html", "url", url)
+	}
 
 	// Step 2: Detect paywall (optional)
 	warnings := make([]string, 0)
@@ -475,4 +503,45 @@ func resolveAdvancedOptions(opts *Options) *fetch.AdvancedOptions {
 		SpoofAcceptLanguage: true,
 		EnableCookies:       true,
 	}
+}
+
+// EnableFileCache enables file-based caching for the default cache.
+// The dir parameter specifies the cache directory. If empty, uses default location.
+func EnableFileCache(dir string) error {
+	if dir == "" {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return fmt.Errorf("get home dir: %w", err)
+		}
+		dir = filepath.Join(home, ".cache", "scraper-lib")
+	}
+
+	fc, err := cache.NewFileCache(dir)
+	if err != nil {
+		return fmt.Errorf("create file cache: %w", err)
+	}
+
+	defaultFileCache = fc
+	defaultFileCacheDir = dir
+	defaultCache = fc
+	enableFileCacheByDefault = true
+
+	return nil
+}
+
+// GetDefaultCache returns the default cache instance.
+// If EnableFileCache was called, returns the FileCache; otherwise returns InMemoryCache.
+func GetDefaultCache() cache.Cache {
+	return defaultCache
+}
+
+// GetCacheDir returns the directory used by the FileCache.
+// Empty string if file cache is not enabled.
+func GetCacheDir() string {
+	return defaultFileCacheDir
+}
+
+// IsFileCacheEnabled returns true if file-based caching is enabled.
+func IsFileCacheEnabled() bool {
+	return enableFileCacheByDefault
 }

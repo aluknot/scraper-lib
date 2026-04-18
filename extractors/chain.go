@@ -2,6 +2,7 @@ package extractors
 
 import (
 	"context"
+	"log/slog"
 	"sort"
 	"time"
 
@@ -41,29 +42,74 @@ func (c *Chain) Extract(ctx context.Context, htmlContent, url string) (*types.Ex
 	for _, e := range c.extractors {
 		start := time.Now()
 		result, err := e.Extract(ctx, htmlContent, url)
+		elapsed := time.Since(start).Milliseconds()
+
 		attempt := types.Attempt{
 			Extractor:  e.Name(),
-			DurationMs: time.Since(start).Milliseconds(),
+			DurationMs: elapsed,
 		}
 
 		if err != nil {
 			attempt.Status = "error"
 			attempt.Error = err.Error()
 			attempts = append(attempts, attempt)
+			slog.Debug("extractor_error",
+				"url", url,
+				"extractor", e.Name(),
+				"status", "error",
+				"error", err.Error(),
+				"duration_ms", elapsed)
 			continue
 		}
 
-		if result == nil || !result.IsValid() {
-			attempt.Status = "low_quality"
+		if result == nil {
+			attempt.Status = "error"
+			attempt.Error = "nil result"
 			attempts = append(attempts, attempt)
+			slog.Debug("extractor_error",
+				"url", url,
+				"extractor", e.Name(),
+				"status", "error",
+				"error", "nil result",
+				"duration_ms", elapsed)
+			continue
+		}
+
+		if !result.IsValid() {
+			attempt.Status = "low_quality"
+			attempt.Error = "word_count < 100"
+			attempts = append(attempts, attempt)
+			slog.Debug("extractor_low_quality",
+				"url", url,
+				"extractor", e.Name(),
+				"word_count", result.WordCount,
+				"content_length", len(result.Content),
+				"duration_ms", elapsed)
 			continue
 		}
 
 		attempt.Status = "success"
 		attempts = append(attempts, attempt)
 		result.Attempts = attempts
+		slog.Debug("extractor_success",
+			"url", url,
+			"extractor", e.Name(),
+			"word_count", result.WordCount,
+			"content_length", len(result.Content),
+			"duration_ms", elapsed)
 		return result, nil
 	}
+
+	slog.Debug("all_extractors_failed",
+		"url", url,
+		"attempts", len(attempts),
+		"attempt_summary", func() string {
+			summary := ""
+			for _, a := range attempts {
+				summary += a.Extractor + ":" + a.Status + " "
+			}
+			return summary
+		}())
 
 	return &types.ExtractResult{Attempts: attempts}, ErrAllExtractorsFailed{URL: url, Attempts: attempts}
 }
