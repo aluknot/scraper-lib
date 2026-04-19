@@ -46,6 +46,11 @@ type Options struct {
 	// When true, logs include HTML previews and detailed extractor attempts.
 	Debug bool
 
+	// MinWords sets the minimum word count required for a result to be
+	// considered valid. Default is 100. Set to 0 to accept any result
+	// (useful for metadata-only extraction).
+	MinWords int
+
 	// HTTP strategy — when UseAdvanced is true, uses UA rotation, cookie jar,
 	// and referrer spoofing. Defaults to simple http.Client.
 	UseAdvanced bool
@@ -347,11 +352,16 @@ func (o *Options) Normalize() {
 // Priority: Extractor (by name) > Extractors (custom list) > DefaultChain().
 // If NoFallback is true, only the first extractor is used.
 func buildChain(opts *Options) *extractors.Chain {
+	minWords := opts.MinWords
+	if minWords < 0 {
+		minWords = 100 // default only if negative
+	}
+
 	// Force single extractor by name — inherently no fallback
 	if opts.Extractor != "" {
 		e := extractorByName(opts.Extractor)
 		if e != nil {
-			return extractors.NewChain(e)
+			return extractors.NewChainWithMinWords(minWords, e)
 		}
 		// Unknown name falls back to default chain
 	}
@@ -359,19 +369,36 @@ func buildChain(opts *Options) *extractors.Chain {
 	// Custom chain
 	if len(opts.Extractors) > 0 {
 		if opts.NoFallback {
-			return extractors.NewChain(opts.Extractors[0])
+			return extractors.NewChainWithMinWords(minWords, opts.Extractors[0])
 		}
-		return extractors.NewChain(opts.Extractors...)
+		return extractors.NewChainWithMinWords(minWords, opts.Extractors...)
 	}
 
-	// Default chain — respect NoFallback
+	// Default chain — respect NoFallback and MinWords
 	if opts.NoFallback {
-		return extractors.NewChain(
+		return extractors.NewChainWithMinWords(minWords,
 			extractors.NewDomainSpecificExtractor(),
 		)
 	}
 
-	return extractors.DefaultChain()
+	// Use MinWords for default chain
+	// When MinWords < 100, include MetadataExtractor (priority 0) for quick metadata
+	if minWords < 100 {
+		return extractors.NewChainWithMinWords(minWords,
+			extractors.NewMetadataExtractor(),       // priority 0 - quick metadata
+			extractors.NewDomainSpecificExtractor(), // priority 1
+			extractors.NewReadabilityExtractor(),    // priority 2
+			extractors.NewTrafilaturaExtractor(),    // priority 3
+			extractors.NewFallbackExtractor(),       // priority 4
+		)
+	}
+
+	return extractors.NewChainWithMinWords(minWords,
+		extractors.NewDomainSpecificExtractor(),
+		extractors.NewReadabilityExtractor(),
+		extractors.NewTrafilaturaExtractor(),
+		extractors.NewFallbackExtractor(),
+	)
 }
 
 // extractorByName returns an Extractor instance by its name string.

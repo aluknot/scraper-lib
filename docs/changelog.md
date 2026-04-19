@@ -2,6 +2,7 @@
 
 | Fecha | Cambio |
 |-------|--------|
+| 2026-04-18 | **v10.4** — Flexible framework: MinWords configurable (0-100, default 100), MetadataExtractor ultra-liviano (solo OG tags), metadata extractor incluido en chain cuando MinWords<100. |
 | 2026-04-17 | **v10.3** — Debug logging: logs detallados por extractor (extractor_error, extractor_low_quality, extractor_success, all_extractors_failed), HTML size y preview en fetch, nueva opción Debug en Options para verbose logging. |
 | 2026-04-17 | **v10.2** — Platform extractors: nuevo paquete extractors/platforms/ con factory y fetcher, YouTube extractor (VideoMetadata, ChannelMetadata, VideoContent, ShortContent), GitHub extractor (RepoMetadata, ProfileMetadata, ReadmeContent), renamed colly.go a fallback.go, extractores registrados automáticamente vía init(). |
 | 2026-04-15 | **v10.1** — Structured logging con log/slog (cache_hit/miss, fetch, extraction_complete, paywall_detected), InMemoryCache con límite LRU (10000 entries default, NewInMemoryCacheWithLimit), testdata fixtures (7 HTML files), tests con DisableCache para evitar cache conflicts. 70+ tests, ~40 archivos. |

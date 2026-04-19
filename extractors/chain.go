@@ -2,6 +2,7 @@ package extractors
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"sort"
 	"time"
@@ -23,14 +24,25 @@ func (e ErrAllExtractorsFailed) Error() string {
 // until one succeeds with valid content.
 type Chain struct {
 	extractors []Extractor
+	minWords   int
 }
 
 // NewChain creates a new Chain with extractors sorted by priority.
+// Default minWords is 100.
 func NewChain(extractors ...Extractor) *Chain {
 	sort.Slice(extractors, func(i, j int) bool {
 		return extractors[i].Priority() < extractors[j].Priority()
 	})
-	return &Chain{extractors: extractors}
+	return &Chain{extractors: extractors, minWords: 100}
+}
+
+// NewChainWithMinWords creates a new Chain with extractors sorted by priority
+// and a custom minimum word count threshold.
+func NewChainWithMinWords(minWords int, extractors ...Extractor) *Chain {
+	sort.Slice(extractors, func(i, j int) bool {
+		return extractors[i].Priority() < extractors[j].Priority()
+	})
+	return &Chain{extractors: extractors, minWords: minWords}
 }
 
 // Extract runs each extractor in priority order. Returns the first result
@@ -75,13 +87,15 @@ func (c *Chain) Extract(ctx context.Context, htmlContent, url string) (*types.Ex
 			continue
 		}
 
-		if !result.IsValid() {
+		// Check if result meets minimum word count threshold
+		if c.minWords > 0 && (result.WordCount < c.minWords || result.Content == "") {
 			attempt.Status = "low_quality"
-			attempt.Error = "word_count < 100"
+			attempt.Error = fmt.Sprintf("word_count < %d", c.minWords)
 			attempts = append(attempts, attempt)
 			slog.Debug("extractor_low_quality",
 				"url", url,
 				"extractor", e.Name(),
+				"min_words", c.minWords,
 				"word_count", result.WordCount,
 				"content_length", len(result.Content),
 				"duration_ms", elapsed)

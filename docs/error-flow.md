@@ -134,6 +134,28 @@ result, err := scraperlib.Extract(ctx, url, &scraperlib.Options{
 3. **Protección (Cloudflare, CAPTCHA)** — verificar manualmente el HTML
 4. **SPA/JavaScript rendering** — requires Playwright (Phase 3)
 
+### MinWords - Umbral Flexible
+
+Para casos donde solo necesitás metadata (como link-lens), podés ajustar el umbral:
+
+```go
+// Extraer lo que haya, sin mínimo de palabras
+result, err := scraperlib.Extract(ctx, url, &scraperlib.Options{
+    MinWords: 0,  // Acepta cualquier resultado
+})
+
+//默认值
+result, err := scraperlib.Extract(ctx, url, nil) // MinWords: 100 (default)
+```
+
+**Cuándo usar MinWords=0:**
+- Solo necesitás metadata (título, descripción, OG tags)
+- link-lens: guardar URL con info básica
+- Preview rápido sin validar contenido
+
+**MetadataExtractor:**
+Cuando MinWords < 100, el chain incluye automáticamente `MetadataExtractor` (priority 0) que extrae solo og:title, og:description, author, etc. — ultra-rápido sin usar readability.
+
 ---
 
 ## Tipos de Error
