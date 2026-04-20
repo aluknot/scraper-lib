@@ -1,6 +1,6 @@
 # Descripción General
 
-> **Status: v10.3** — Debug logging detallado para troubleshooting.
+> **Status: v10.5** — Flat metadata structure + MinWords flexible.
 > Ver [docs/implementation-status.md](implementation-status.md) para estado completo.
 
 Servicio standalone de scraping con arquitectura extensible. Base de código extraída de Rissy.
@@ -12,14 +12,26 @@ Servicio standalone de scraping con arquitectura extensible. Base de código ext
 API de alto nivel con defaults razonables y opciones configurables:
 
 ```go
+// Extraer artículo completo (requiere 100+ palabras)
 result, err := scraperlib.Extract(ctx, url, &scraperlib.Options{
     Outputs: []string{"article", "markdown"},
     Timeout: 30 * time.Second,
-    // Pipeline stages opcionales:
+})
+
+// Extraer solo metadata (MinWords=0, ultra-rápido)
+result, err := scraperlib.Extract(ctx, url, &scraperlib.Options{
+    MinWords: 0,  // Acepta cualquier resultado
+    UseAdvanced: true,  // Mejor para sitios que bloquean
+})
+
+// Pipeline stages opcionales:
+result, err := scraperlib.Extract(ctx, url, &scraperlib.Options{
+    MinWords:           100,  // palabras mínimas (default: 100, 0=aceptar cualquier)
     NoEmbeds:           false, // preservar embeds (default)
     NoSanitize:         false, // sanitizar HTML (default)
-    NoPaywallDetection:  false, // detectar paywalls (default)
+    NoPaywallDetection: false, // detectar paywalls (default)
     DisableCache:       false, // usar cache (default)
+    Debug:              false, // verbose logging
 })
 ```
 
@@ -86,6 +98,42 @@ profile, err := extractor.Profile(ctx, url)
 - **Tipos**: repo, profile, release
 - **Metadata**: RepoMetadata, ProfileMetadata
 - **Content**: ReadmeContent
+
+---
+
+## Metadata Estructura (Flat)
+
+A partir de v10.5, toda la metadata está a nivel superior (sin anidación):
+
+```go
+// ExtractResult y MetadataResult tienen todos los campos a nivel superior
+result, _ := scraperlib.Extract(ctx, url, &scraperlib.Options{MinWords: 0})
+
+// result.Metadata tiene:
+result.Metadata.Title         // og:title o <title>
+result.Metadata.Description  // og:description o meta description
+result.Metadata.SiteName     // og:site_name
+result.Metadata.ThumbnailURL  // og:image (primera imagen)
+result.Metadata.Images       // todas las og:images
+result.Metadata.Videos      // todos los og:videos
+result.Metadata.Category    // og:type
+result.Metadata.URL         // URL original
+result.Metadata.Language    // idioma detectado
+result.Metadata.Author      // autor
+result.Metadata.WordCount  // palabras extraídas
+```
+
+### Modos de Extracción
+
+| Modo | MinWords | Uso |
+|------|----------|-----|
+| Article | 100 (default) | Contenido completo |
+| Metadata | 0 | Solo OG tags, ultra-rápido |
+
+```go
+// Metadata only (link-lens usa esto)
+scraperlib.Extract(ctx, url, &scraperlib.Options{MinWords: 0})
+```
 
 ---
 

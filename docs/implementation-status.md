@@ -1,11 +1,11 @@
 # Estado de Implementación
 
 > **Fecha:** 2026-04-18
-> **Versión:** v10.3 (Debug logging detallado)
+> **Versión:** v10.5 (Flat metadata structure)
 
 ---
 
-## ✅ Implementado (v10.0 - v10.3)
+## ✅ Implementado (v10.0 - v10.5)
 
 | Componente | Archivos | Tests |
 |---|---|---|
@@ -31,6 +31,9 @@
 | **YouTube extractor** | `extractors/platforms/youtube/` | ✅ |
 | **GitHub extractor** | `extractors/platforms/github/` | ✅ |
 | **Debug logging** | `Options.Debug`, chain.go logs | ✅ |
+| **MinWords configurable** | `Options.MinWords`, chain.go | ✅ |
+| **MetadataExtractor** | `extractors/metadata.go` | ✅ |
+| **Flat metadata** | `types.ExtractResult`, `output.MetadataResult` | ✅ |
 | **Total** | **~40 archivos** | **70+ tests pasando** |
 
 ---
