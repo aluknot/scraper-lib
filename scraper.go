@@ -462,9 +462,6 @@ func resolveCache(c cache.Cache) cache.Cache {
 // toCacheResult converts a scraperlib.Result to a cache.Result for storage.
 func toCacheResult(r *Result) *cache.Result {
 	cr := &cache.Result{
-		Title:     "",
-		Author:    "",
-		Language:  "",
 		Extractor: r.ExtractorUsed,
 		WordCount: r.WordCount,
 		Warnings:  r.Warnings,
@@ -483,6 +480,10 @@ func toCacheResult(r *Result) *cache.Result {
 		cr.Author = r.Metadata.Author
 		cr.Language = r.Metadata.Language
 		cr.WordCount = r.Metadata.WordCount
+	}
+	// Always try to get URL from Article if not set yet
+	if cr.URL == "" && r.Article != nil {
+		cr.URL = r.Article.URL
 	}
 	return cr
 }

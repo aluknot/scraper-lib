@@ -53,7 +53,7 @@ func (e *MetadataExtractor) Extract(ctx context.Context, htmlContent, pageURL st
 	if !exists || desc == "" {
 		desc = doc.Find("meta[name='description']").AttrOr("content", "")
 	}
-	result.Title = strings.TrimSpace(result.Title)
+	result.Description = strings.TrimSpace(desc)
 
 	// Author
 	author, _ := doc.Find("meta[name='author']").Attr("content")
@@ -85,6 +85,7 @@ func (e *MetadataExtractor) Extract(ctx context.Context, htmlContent, pageURL st
 			siteName = parsedURL.Host
 		}
 	}
+	result.SiteName = strings.TrimSpace(siteName)
 
 	// Images
 	doc.Find("meta[property='og:image']").Each(func(i int, s *goquery.Selection) {

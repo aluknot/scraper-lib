@@ -23,6 +23,8 @@ type StrategyAttempt struct {
 type ExtractResult struct {
 	Content     string
 	Title       string
+	Description string // Page description (og:description, meta description)
+	SiteName    string // og:site_name
 	Author      string
 	PublishedAt *time.Time
 	Language    string

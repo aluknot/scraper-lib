@@ -23,12 +23,17 @@ type ArticleResult struct {
 // MetadataResult holds extracted metadata about the page/article.
 type MetadataResult struct {
 	Title        string
+	Description  string
 	Author       string
 	Language     string
-	WordCount    int
-	Images       int
-	Videos       int
+	SiteName     string
+	URL          string
+	ThumbnailURL string
+	Images       []string
+	Videos       []string
 	Links        int
+	Category     string
+	WordCount    int
 	Extractor    string
 	QualityScore float64
 	Warnings     []string
@@ -61,18 +66,29 @@ func BuildArticleResult(extracted *types.ExtractResult, url string) *ArticleResu
 
 // BuildMetadataResult creates a metadata summary result.
 func BuildMetadataResult(extracted *types.ExtractResult, url string) *MetadataResult {
-	return &MetadataResult{
+	result := &MetadataResult{
 		Title:        extracted.Title,
+		Description:  extracted.Description,
 		Author:       extracted.Author,
 		Language:     extracted.Language,
-		WordCount:    extracted.WordCount,
-		Images:       len(extracted.Images),
-		Videos:       len(extracted.Videos),
+		SiteName:     extracted.SiteName,
+		Images:       extracted.Images,
+		Videos:       extracted.Videos,
 		Links:        len(extracted.Links),
+		Category:     extracted.Category,
+		WordCount:    extracted.WordCount,
 		Extractor:    extracted.ExtractorUsed,
 		QualityScore: extracted.QualityScore,
 		Warnings:     extracted.Warnings,
+		URL:          url,
 	}
+
+	// Add first image as thumbnail if available
+	if len(extracted.Images) > 0 {
+		result.ThumbnailURL = extracted.Images[0]
+	}
+
+	return result
 }
 
 // BuildRawResult creates a raw, unformatted result for debugging.
