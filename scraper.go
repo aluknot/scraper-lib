@@ -481,6 +481,10 @@ func toCacheResult(r *Result) *cache.Result {
 		cr.URL = r.Metadata.URL
 		cr.Author = r.Metadata.Author
 		cr.Language = r.Metadata.Language
+		cr.Description = r.Metadata.Description
+		cr.SiteName = r.Metadata.SiteName
+		cr.ThumbnailURL = r.Metadata.ThumbnailURL
+		cr.Category = r.Metadata.Category
 	}
 	// Always try to get URL from Article if not set yet
 	if cr.URL == "" {
@@ -514,10 +518,14 @@ func resultFromCache(cr *cache.Result) *Result {
 
 	// Also create Metadata with all fields
 	result.Metadata = &output.MetadataResult{
-		Title:    cr.Title,
-		URL:      cr.URL,
-		Author:   cr.Author,
-		Language: cr.Language,
+		Title:        cr.Title,
+		URL:          cr.URL,
+		Author:       cr.Author,
+		Language:     cr.Language,
+		Description:  cr.Description,
+		SiteName:     cr.SiteName,
+		ThumbnailURL: cr.ThumbnailURL,
+		Category:     cr.Category,
 	}
 
 	return result

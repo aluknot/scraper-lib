@@ -26,15 +26,19 @@ type Cache interface {
 
 // Result holds the cached data for a URL extraction.
 type Result struct {
-	URL       string    `json:"url"`
-	Content   string    `json:"content"`
-	Title     string    `json:"title"`
-	Author    string    `json:"author"`
-	Language  string    `json:"language"`
-	Extractor string    `json:"extractor"`
-	WordCount int       `json:"word_count"`
-	Warnings  []string  `json:"warnings"`
-	FetchedAt time.Time `json:"fetched_at"`
+	URL          string    `json:"url"`
+	Content      string    `json:"content"`
+	Title        string    `json:"title"`
+	Author       string    `json:"author"`
+	Language     string    `json:"language"`
+	Extractor    string    `json:"extractor"`
+	WordCount    int       `json:"word_count"`
+	Warnings     []string  `json:"warnings"`
+	FetchedAt    time.Time `json:"fetched_at"`
+	Description  string    `json:"description"`
+	SiteName     string    `json:"site_name"`
+	ThumbnailURL string    `json:"thumbnail_url"`
+	Category     string    `json:"category"`
 }
 
 // Stats holds cache statistics.
