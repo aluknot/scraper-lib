@@ -476,14 +476,19 @@ func toCacheResult(r *Result) *cache.Result {
 	} else if r.Raw != nil {
 		cr.Content = r.Raw.Content
 	} else if r.Metadata != nil {
+		// Save all metadata fields
 		cr.Title = r.Metadata.Title
+		cr.URL = r.Metadata.URL
 		cr.Author = r.Metadata.Author
 		cr.Language = r.Metadata.Language
-		cr.WordCount = r.Metadata.WordCount
 	}
 	// Always try to get URL from Article if not set yet
-	if cr.URL == "" && r.Article != nil {
-		cr.URL = r.Article.URL
+	if cr.URL == "" {
+		if r.Article != nil {
+			cr.URL = r.Article.URL
+		} else if r.Metadata != nil {
+			cr.URL = r.Metadata.URL
+		}
 	}
 	return cr
 }
@@ -496,6 +501,7 @@ func resultFromCache(cr *cache.Result) *Result {
 		Warnings:      cr.Warnings,
 	}
 
+	// Always create Article for backwards compatibility
 	result.Article = &output.ArticleResult{
 		Title:   cr.Title,
 		Content: cr.Content,
@@ -504,6 +510,14 @@ func resultFromCache(cr *cache.Result) *Result {
 	}
 	if cr.Language != "" {
 		result.Article.Language = cr.Language
+	}
+
+	// Also create Metadata with all fields
+	result.Metadata = &output.MetadataResult{
+		Title:    cr.Title,
+		URL:      cr.URL,
+		Author:   cr.Author,
+		Language: cr.Language,
 	}
 
 	return result
