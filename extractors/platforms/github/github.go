@@ -23,6 +23,12 @@ func New(client *http.Client) *Extractor {
 	}
 }
 
+func NewWithFetcher(fetcher platforms.Fetcher) *Extractor {
+	return &Extractor{
+		fetcher: fetcher,
+	}
+}
+
 func (e *Extractor) Name() string { return "github" }
 
 func (e *Extractor) CanProcess(url string) bool {

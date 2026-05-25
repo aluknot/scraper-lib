@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aluknot/scraper-lib/extractors/platforms/youtube"
 	"github.com/aluknot/scraper-lib/internal/markdown"
 	"github.com/aluknot/scraper-lib/internal/urlutil"
 	"github.com/aluknot/scraper-lib/types"
@@ -37,6 +38,9 @@ type MetadataResult struct {
 	Extractor    string
 	QualityScore float64
 	Warnings     []string
+	PlatformData struct {
+		YouTube *youtube.VideoMetadata `json:"youtube,omitempty"`
+	} `json:"platform_data,omitempty"`
 }
 
 // RawResult holds the unprocessed extraction result.
@@ -86,6 +90,11 @@ func BuildMetadataResult(extracted *types.ExtractResult, url string) *MetadataRe
 	// Add first image as thumbnail if available
 	if len(extracted.Images) > 0 {
 		result.ThumbnailURL = extracted.Images[0]
+	}
+
+	// Mapear datos de platforms (YouTube, etc.)
+	if extracted.PlatformData.YouTube != nil {
+		result.PlatformData.YouTube = extracted.PlatformData.YouTube
 	}
 
 	return result

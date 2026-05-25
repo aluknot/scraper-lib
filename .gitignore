@@ -1,0 +1,6 @@
+*.backup
+.opencode/package-lock.json
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

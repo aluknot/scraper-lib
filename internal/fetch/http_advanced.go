@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -135,6 +136,23 @@ func ApplyAdvancedOptions(req *http.Request, opts *AdvancedOptions) {
 	req.Header.Set("Sec-Fetch-Site", "none")
 	req.Header.Set("Sec-Fetch-User", "?1")
 	req.Header.Set("Upgrade-Insecure-Requests", "1")
+	req.Header.Set("Cache-Control", "max-age=0")
+	req.Header.Set("DNT", "1")
+	req.Header.Set("Sec-GPC", "1")
+
+	// Client Hint headers (Chrome-based UAs)
+	ua := req.Header.Get("User-Agent")
+	if ua != "" && (strings.Contains(ua, "Chrome") || strings.Contains(ua, "Edge")) {
+		req.Header.Set("Sec-CH-UA", `"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"`)
+		req.Header.Set("Sec-CH-UA-Mobile", "?0")
+		req.Header.Set("Sec-CH-UA-Platform", `"Windows"`)
+		req.Header.Set("Sec-CH-UA-Platform-Version", `"10.0.0"`)
+		req.Header.Set("Sec-CH-UA-Full-Version-List", `"Chromium";v="124.0.0.0", "Google Chrome";v="124.0.0.0", "Not-A.Brand";v="99.0.0.0"`)
+		req.Header.Set("Sec-CH-UA-Bitness", `"64"`)
+		req.Header.Set("Sec-CH-UA-Arch", `"x86"`)
+		req.Header.Set("Sec-CH-UA-Model", `""`)
+		req.Header.Set("Sec-CH-UA-WoW64", "?0")
+	}
 
 	for k, v := range opts.AdditionalHeaders {
 		req.Header.Set(k, v)

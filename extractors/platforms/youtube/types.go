@@ -3,6 +3,7 @@ package youtube
 import "time"
 
 type VideoMetadata struct {
+	Title         string
 	ChannelName   string
 	ChannelURL    string
 	ViewCount     int64

@@ -19,6 +19,8 @@ import (
 	"github.com/aluknot/scraper-lib/types"
 
 	"github.com/aluknot/scraper-lib/extractors"
+	"github.com/aluknot/scraper-lib/extractors/platforms"
+	"github.com/aluknot/scraper-lib/extractors/platforms/youtube"
 	"github.com/aluknot/scraper-lib/output"
 )
 
@@ -66,7 +68,7 @@ type Options struct {
 	Extractors []extractors.Extractor
 
 	// Extractor forces a single extractor by name.
-	// Valid names: "domain_specific", "readability", "trafilatura", "fallback".
+	// Valid names: "domain_specific", "readability", "trafilatura", "fallback", "youtube", "github", "twitter".
 	// When set, Extractors and DefaultChain are ignored.
 	Extractor string
 
@@ -143,9 +145,14 @@ func Extract(ctx context.Context, url string, opts *Options) (*Result, error) {
 	defer cancel()
 
 	start := time.Now()
-	slog.Debug("extract_start", "url", url)
+	slog.Info("extract_start", "url", url, "extractor", opts.Extractor, "outputs", opts.Outputs, "disable_cache", opts.DisableCache)
 
 	// Resolve cache (respects DisableCache)
+	// Include extractor name in cache key to avoid stale results when switching extractors
+	cacheKey := url
+	if opts.Extractor != "" {
+		cacheKey = opts.Extractor + ":" + url
+	}
 	var cacheInstance cache.Cache
 	var cacheTTL time.Duration
 
@@ -156,36 +163,44 @@ func Extract(ctx context.Context, url string, opts *Options) (*Result, error) {
 			cacheTTL = DefaultCacheTTL
 		}
 		// Check cache hit
-		if result, ok := cacheInstance.Get(url); ok {
-			slog.Info("cache_hit", "url", url, "duration_ms", time.Since(start).Milliseconds())
+		if result, ok := cacheInstance.Get(cacheKey); ok {
+			slog.Info("cache_hit", "url", url, "cached_extractor", result.Extractor, "duration_ms", time.Since(start).Milliseconds())
 			return resultFromCache(result), nil
 		}
-		slog.Debug("cache_miss", "url", url)
+		slog.Debug("cache_miss", "url", url, "cache_key", cacheKey)
 	}
 
 	// Resolve HTTP client — simple or advanced
 	client := resolveHTTPClient(opts, timeout)
-	chain := buildChain(opts)
+	chain := buildChain(opts, client)
 
-	// Step 1: Fetch raw HTML
+	// Skip initial HTML fetch for platform extractors (YouTube, GitHub, Twitter)
+	// They use oEmbed API which doesn't get 429 blocked
+	skipFetch := opts.Extractor != "" && (opts.Extractor == "youtube" || opts.Extractor == "github" || opts.Extractor == "twitter")
+
 	var rawHTML string
-	var err error
-	if opts.UseAdvanced {
-		slog.Debug("fetch_start", "url", url, "strategy", "advanced")
-		advOpts := resolveAdvancedOptions(opts)
-		rawHTML, err = fetch.GetHTMLAdvanced(ctx, client, url, advOpts)
+	if !skipFetch {
+		// Step 1: Fetch raw HTML
+		var err error
+		if opts.UseAdvanced {
+			slog.Debug("fetch_start", "url", url, "strategy", "advanced")
+			advOpts := resolveAdvancedOptions(opts)
+			rawHTML, err = fetch.GetHTMLAdvanced(ctx, client, url, advOpts)
+		} else {
+			slog.Debug("fetch_start", "url", url, "strategy", "simple")
+			rawHTML, err = fetch.GetHTML(ctx, client, url)
+		}
+		if err != nil {
+			slog.Error("fetch_failed", "url", url, "error", err)
+			return nil, fmt.Errorf("fetch HTML: %w", err)
+		}
+		slog.Debug("fetch_success",
+			"url", url,
+			"html_size", len(rawHTML),
+			"duration_ms", time.Since(start).Milliseconds())
 	} else {
-		slog.Debug("fetch_start", "url", url, "strategy", "simple")
-		rawHTML, err = fetch.GetHTML(ctx, client, url)
+		slog.Info("fetch_skipped", "url", url, "reason", "platform extractor uses oEmbed")
 	}
-	if err != nil {
-		slog.Error("fetch_failed", "url", url, "error", err)
-		return nil, fmt.Errorf("fetch HTML: %w", err)
-	}
-	slog.Debug("fetch_success",
-		"url", url,
-		"html_size", len(rawHTML),
-		"duration_ms", time.Since(start).Milliseconds())
 
 	// Debug: log first 200 chars of HTML for troubleshooting
 	if len(rawHTML) > 0 {
@@ -248,7 +263,7 @@ func Extract(ctx context.Context, url string, opts *Options) (*Result, error) {
 
 	// Store in cache if enabled
 	if !opts.DisableCache {
-		cacheInstance.Set(url, toCacheResult(result), cacheTTL)
+		cacheInstance.Set(cacheKey, toCacheResult(result), cacheTTL)
 	}
 
 	slog.Info("extraction_complete",
@@ -285,7 +300,7 @@ func ExtractHTML(ctx context.Context, htmlContent string, baseURL string, opts *
 		}
 	}
 
-	chain := buildChain(opts)
+	chain := buildChain(opts, nil)
 
 	start := time.Now()
 
@@ -331,7 +346,12 @@ func ExtractHTML(ctx context.Context, htmlContent string, baseURL string, opts *
 
 	// Store in cache if enabled
 	if !opts.DisableCache {
-		cacheInstance.Set(baseURL, toCacheResult(result), cacheTTL)
+		// Use same cacheKey logic as Extract()
+		cacheKey := baseURL
+		if opts.Extractor != "" {
+			cacheKey = opts.Extractor + ":" + baseURL
+		}
+		cacheInstance.Set(cacheKey, toCacheResult(result), cacheTTL)
 	}
 
 	return result, nil
@@ -351,16 +371,21 @@ func (o *Options) Normalize() {
 // buildChain creates an extractor chain based on Options settings.
 // Priority: Extractor (by name) > Extractors (custom list) > DefaultChain().
 // If NoFallback is true, only the first extractor is used.
-func buildChain(opts *Options) *extractors.Chain {
+func buildChain(opts *Options, client *http.Client) *extractors.Chain {
 	minWords := opts.MinWords
-	if minWords < 0 {
-		minWords = 100 // default only if negative
+	if minWords <= 0 {
+		minWords = 100 // default when not set or zero
 	}
 
 	// Force single extractor by name — inherently no fallback
 	if opts.Extractor != "" {
-		e := extractorByName(opts.Extractor)
+		e := extractorByName(opts.Extractor, client)
 		if e != nil {
+			// For platform extractors (YouTube, GitHub, Twitter), don't apply minWords
+			// They produce metadata, not article content
+			if _, ok := e.(*platformWrapper); ok {
+				return extractors.NewChainWithMinWords(0, e)
+			}
 			return extractors.NewChainWithMinWords(minWords, e)
 		}
 		// Unknown name falls back to default chain
@@ -382,11 +407,11 @@ func buildChain(opts *Options) *extractors.Chain {
 	}
 
 	// Use MinWords for default chain
-	// When MinWords < 100, include MetadataExtractor (priority 0) for quick metadata
+	// When MinWords < 100, include DomainSpecificExtractor (priority 0) for quick metadata
 	if minWords < 100 {
 		return extractors.NewChainWithMinWords(minWords,
-			extractors.NewMetadataExtractor(),       // priority 0 - quick metadata
-			extractors.NewDomainSpecificExtractor(), // priority 1
+			extractors.NewDomainSpecificExtractor(), // priority 0 - catches YouTube/GitHub
+			extractors.NewMetadataExtractor(),       // priority 1
 			extractors.NewReadabilityExtractor(),    // priority 2
 			extractors.NewTrafilaturaExtractor(),    // priority 3
 			extractors.NewFallbackExtractor(),       // priority 4
@@ -402,7 +427,8 @@ func buildChain(opts *Options) *extractors.Chain {
 }
 
 // extractorByName returns an Extractor instance by its name string.
-func extractorByName(name string) extractors.Extractor {
+func extractorByName(name string, client *http.Client) extractors.Extractor {
+	slog.Debug("extractorByName called", "name", name)
 	switch name {
 	case "domain_specific":
 		return extractors.NewDomainSpecificExtractor()
@@ -412,9 +438,76 @@ func extractorByName(name string) extractors.Extractor {
 		return extractors.NewTrafilaturaExtractor()
 	case "fallback":
 		return extractors.NewFallbackExtractor()
+	case "youtube", "github", "twitter":
+		slog.Debug("platform extractor requested", "name", name)
+		if e, err := platforms.GetByName(client, name); err == nil {
+			slog.Debug("platform extractor found", "name", name, "type", fmt.Sprintf("%T", e))
+			return &platformWrapper{extractor: e, client: client}
+		} else {
+			slog.Error("platform extractor not found", "name", name, "error", err)
+		}
+		return nil
 	default:
 		return nil
 	}
+}
+
+// platformWrapper wraps a platforms.Extractor to implement extractors.Extractor interface.
+type platformWrapper struct {
+	extractor platforms.Extractor
+	client    *http.Client
+}
+
+func (w *platformWrapper) Name() string  { return w.extractor.Name() }
+func (w *platformWrapper) Priority() int { return 1 }
+
+func (w *platformWrapper) Extract(ctx context.Context, htmlContent string, url string) (*types.ExtractResult, error) {
+	slog.Debug("platformWrapper.Extract called", "extractor", w.extractor.Name(), "url", url)
+	result := &types.ExtractResult{
+		ExtractorUsed: w.extractor.Name(),
+		Attempts:      []types.Attempt{{Extractor: w.extractor.Name(), Status: "success"}},
+	}
+
+	// Always use the original extractor (preserves oembedFetcher)
+	// oEmbed makes its own HTTP request, doesn't need pre-fetched HTML
+	ext := w.extractor
+
+	// Obtener metadatos del platform extractor
+	meta, err := ext.Metadata(ctx, url)
+	if err != nil {
+		slog.Error("platformWrapper: Metadata() failed", "extractor", ext.Name(), "error", err)
+		return nil, err
+	}
+
+	// Mapear según tipo de contenido
+	switch m := meta.(type) {
+	case *youtube.VideoMetadata:
+		slog.Info("platformWrapper: got VideoMetadata", "video_id", m.VideoID, "channel", m.ChannelName, "title", m.Title)
+		result.PlatformData.YouTube = m
+		// Usar título de VideoMetadata si oEmbed lo proporcionó
+		if m.Title != "" {
+			result.Title = m.Title
+		}
+		// Intentar obtener descripción y más datos de Content()
+		// (puede fallar con 429 si YouTube bloquea)
+		content, err := ext.Content(ctx, url)
+		if err != nil {
+			slog.Warn("platformWrapper: Content() failed, using oEmbed metadata only", "error", err)
+		} else if vc, ok := content.(*youtube.VideoContent); ok {
+			result.Title = vc.Title
+			result.Description = vc.Description
+			result.WordCount = len(vc.Description)
+		}
+	case *youtube.ShortContent:
+		slog.Debug("platformWrapper: got ShortContent", "title", m.Title)
+		result.Title = m.Title
+		result.Description = m.Description
+		result.WordCount = len(m.Description)
+	default:
+		slog.Warn("platformWrapper: unknown metadata type", "type", fmt.Sprintf("%T", m))
+	}
+
+	return result, nil
 }
 
 func buildResult(extracted *types.ExtractResult, outputTypes []string, url, category, templateDir string, warnings []string, durationMs int64) *Result {
@@ -441,6 +534,12 @@ func buildResult(extracted *types.ExtractResult, outputTypes []string, url, cate
 				result.Markdown = md
 			}
 		}
+	}
+
+	// For platform extractors (YouTube, GitHub, Twitter), always ensure Metadata is set
+	// Platform-specific data (PlatformData) is only in MetadataResult
+	if result.Metadata == nil && (extracted.ExtractorUsed == "youtube" || extracted.ExtractorUsed == "github" || extracted.ExtractorUsed == "twitter") {
+		result.Metadata = output.BuildMetadataResult(extracted, url)
 	}
 
 	// Default to article if no output matched
@@ -485,6 +584,10 @@ func toCacheResult(r *Result) *cache.Result {
 		cr.SiteName = r.Metadata.SiteName
 		cr.ThumbnailURL = r.Metadata.ThumbnailURL
 		cr.Category = r.Metadata.Category
+		// Save platform-specific data (YouTube, etc.)
+		if r.Metadata.PlatformData.YouTube != nil {
+			cr.PlatformData.YouTube = r.Metadata.PlatformData.YouTube
+		}
 	}
 	// Always try to get URL from Article if not set yet
 	if cr.URL == "" {
@@ -526,6 +629,10 @@ func resultFromCache(cr *cache.Result) *Result {
 		SiteName:     cr.SiteName,
 		ThumbnailURL: cr.ThumbnailURL,
 		Category:     cr.Category,
+	}
+	// Restore platform-specific data (YouTube, etc.)
+	if cr.PlatformData.YouTube != nil {
+		result.Metadata.PlatformData.YouTube = cr.PlatformData.YouTube
 	}
 
 	return result

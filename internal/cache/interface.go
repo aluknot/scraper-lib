@@ -2,7 +2,10 @@
 package cache
 
 import (
+	"encoding/json"
 	"time"
+
+	"github.com/aluknot/scraper-lib/extractors/platforms/youtube"
 )
 
 // Cache is the interface that all cache implementations must satisfy.
@@ -39,6 +42,9 @@ type Result struct {
 	SiteName     string    `json:"site_name"`
 	ThumbnailURL string    `json:"thumbnail_url"`
 	Category     string    `json:"category"`
+	PlatformData struct {
+		YouTube *youtube.VideoMetadata `json:"youtube,omitempty"`
+	} `json:"platform_data,omitempty"`
 }
 
 // Stats holds cache statistics.
@@ -46,4 +52,25 @@ type Stats struct {
 	Hits   int `json:"hits"`
 	Misses int `json:"misses"`
 	Size   int `json:"size"`
+}
+
+// MarshalJSON implements custom JSON marshaling to handle VideoMetadata.
+func (r *Result) MarshalJSON() ([]byte, error) {
+	type Alias Result
+	return json.Marshal(&struct {
+		*Alias
+	}{
+		Alias: (*Alias)(r),
+	})
+}
+
+// UnmarshalJSON implements custom JSON unmarshaling.
+func (r *Result) UnmarshalJSON(data []byte) error {
+	type Alias Result
+	aux := &struct {
+		*Alias
+	}{
+		Alias: (*Alias)(r),
+	}
+	return json.Unmarshal(data, aux)
 }

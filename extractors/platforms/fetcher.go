@@ -49,6 +49,24 @@ func (f *GoQueryFetcher) Fetch(ctx context.Context, url string) (*goquery.Docume
 	return doc, resp, nil
 }
 
+// InMemoryFetcher parses pre-fetched HTML without making HTTP requests.
+// Used when the caller already has the HTML (e.g., from scraperlib.Extract).
+type InMemoryFetcher struct {
+	html string
+}
+
+func NewInMemoryFetcher(html string) *InMemoryFetcher {
+	return &InMemoryFetcher{html: html}
+}
+
+func (f *InMemoryFetcher) Fetch(ctx context.Context, url string) (*goquery.Document, *http.Response, error) {
+	doc, err := goquery.NewDocumentFromReader(strings.NewReader(f.html))
+	if err != nil {
+		return nil, nil, fmt.Errorf("parse html: %w", err)
+	}
+	return doc, nil, nil
+}
+
 func CanProcess(url string, domains []string) bool {
 	lowerURL := strings.ToLower(url)
 	for _, domain := range domains {

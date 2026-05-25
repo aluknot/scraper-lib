@@ -102,6 +102,7 @@ func FetchWithRetry(ctx context.Context, client *http.Client, req *http.Request)
 
 			// For 429 (rate limited), retry with delay
 			if resp.StatusCode == 429 {
+				lastErr = fmt.Errorf("http %d", resp.StatusCode)
 				resp.Body.Close()
 				delay := calculateBackoff(attempt)
 				select {
@@ -114,6 +115,7 @@ func FetchWithRetry(ctx context.Context, client *http.Client, req *http.Request)
 
 			// For 5xx (server errors), retry
 			if resp.StatusCode >= 500 && resp.StatusCode < 600 {
+				lastErr = fmt.Errorf("http %d", resp.StatusCode)
 				resp.Body.Close()
 				delay := calculateBackoff(attempt)
 				select {

@@ -1,7 +1,11 @@
 // Package types defines shared data structures used across scraper-lib.
 package types
 
-import "time"
+import (
+	"time"
+
+	"github.com/aluknot/scraper-lib/extractors/platforms/youtube"
+)
 
 // Attempt records the outcome of a single extractor execution.
 type Attempt struct {
@@ -37,6 +41,9 @@ type ExtractResult struct {
 	Price *PriceInfo
 	Job   *JobInfo
 
+	// Datos específicos de plataforma (YouTube, GitHub, Twitter, etc.)
+	PlatformData PlatformData
+
 	// Diagnóstico — siempre presente
 	ExtractorUsed string
 	QualityScore  float64
@@ -70,4 +77,9 @@ type JobInfo struct {
 	Requirements []string
 	Benefits     []string
 	ApplyURL     string
+}
+
+// PlatformData holds platform-specific metadata from platform extractors.
+type PlatformData struct {
+	YouTube *youtube.VideoMetadata `json:"youtube,omitempty"`
 }
